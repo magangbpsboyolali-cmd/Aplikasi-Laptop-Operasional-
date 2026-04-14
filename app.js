@@ -109,17 +109,17 @@ function initForms() {
         loginForm.addEventListener('submit', handleLogin);
     }
 
-    // Auto-fill divisi on pegawai select
+    // Auto-fill tim on pegawai select
     const pinjamNama = document.getElementById('pinjamNama');
     if (pinjamNama) {
         pinjamNama.addEventListener('change', function () {
             const nip = String(this.value);
             const pegawai = AppState.pegawai.find(function (p) { return String(p.NIP) === nip; });
-            const divisiInput = document.getElementById('pinjamDivisi');
-            if (pegawai && divisiInput) {
-                divisiInput.value = pegawai['TIM (DIVISI)'] || pegawai['TIM DIVISI'] || pegawai['TIM(DIVISI)'] || pegawai.DIVISI || '';
-            } else if (divisiInput) {
-                divisiInput.value = '';
+            const timInput = document.getElementById('pinjamTim');
+            if (pegawai && timInput) {
+                timInput.value = getPegawaiTim(pegawai);
+            } else if (timInput) {
+                timInput.value = '';
             }
         });
     }
@@ -405,14 +405,13 @@ function renderStats() {
     const laptops = AppState.laptops;
 
     const dipinjam = laptops.filter(function (l) {
-        return (l.STATUS || '').toLowerCase() === 'dipinjam';
+        return normalizeLaptopStatus(l.STATUS) === 'dipinjam';
     }).length;
     const rusak = laptops.filter(function (l) {
-        return (l.STATUS || '').toLowerCase() === 'rusak berat';
+        return normalizeLaptopStatus(l.STATUS) === 'rusak';
     }).length;
     const tersedia = laptops.filter(function (l) {
-        var s = (l.STATUS || '').toLowerCase();
-        return s === 'tersedia' || s === 'rusak ringan';
+        return normalizeLaptopStatus(l.STATUS) === 'tersedia';
     }).length;
 
     animateNumber('statTersedia', tersedia);
@@ -805,7 +804,7 @@ function handlePeminjaman(e) {
 
     const laptopId = document.getElementById('pinjamLaptop').value;
     const nip = document.getElementById('pinjamNama').value;
-    const divisi = document.getElementById('pinjamDivisi').value;
+    const tim = document.getElementById('pinjamTim').value;
     const keperluan = document.getElementById('pinjamKeperluan').value;
     const deskripsi = document.getElementById('pinjamDeskripsi').value;
     const tglPinjam = document.getElementById('pinjamTglPinjam').value;
@@ -834,7 +833,7 @@ function handlePeminjaman(e) {
         laptopId,
         nip,
         namaPeminjam,
-        divisi,
+        tim,
         keperluan,
         deskripsi,
         tglPinjam,
@@ -871,7 +870,8 @@ function processPeminjaman() {
         LAPTOP_ID: pendingPeminjamanData.laptopId,
         NAMA_PEMINJAM: pendingPeminjamanData.namaPeminjam,
         NIP: pendingPeminjamanData.nip,
-        DIVISI: pendingPeminjamanData.divisi,
+        TIM: pendingPeminjamanData.tim,
+        DIVISI: pendingPeminjamanData.tim,
         KEPERLUAN: pendingPeminjamanData.keperluan,
         DESKRIPSI_KEPERLUAN: pendingPeminjamanData.deskripsi,
         TGL_PINJAM: pendingPeminjamanData.tglPinjam,
@@ -967,7 +967,8 @@ function populatePengembalianForm() {
             if (activeBorrowers.has(p.NAMA)) {
                 const opt = document.createElement('option');
                 opt.value = p.NAMA;
-                opt.textContent = p.NAMA + ' - ' + (p['TIM(DIVISI)'] || '');
+                var tim = getPegawaiTim(p);
+                opt.textContent = p.NAMA + (tim ? (' - ' + tim) : '');
                 select.appendChild(opt);
             }
         });
@@ -1056,7 +1057,7 @@ function selectLoanForReturn(peminjamanId) {
             detailItem('Kode Laptop', loan.LAPTOP_ID || '-') +
             detailItem('Merk/Type', laptop ? (laptop.MERK + ' ' + laptop.TYPE) : '-') +
             detailItem('Nama Peminjam', loan.NAMA_PEMINJAM || '-') +
-            detailItem('Divisi', loan.DIVISI || '-') +
+            detailItem('Tim', loan.TIM || loan.DIVISI || '-') +
             detailItem('Keperluan', loan.KEPERLUAN || '-') +
             detailItem('Tgl Pinjam', formatDate(loan.TGL_PINJAM)) +
             detailItem('Perkiraan Kembali', formatDate(loan.TGL_KEMBALI_RENCANA));
@@ -1391,4 +1392,129 @@ function escapeHtml(str) {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+}
+
+function getPegawaiTim(pegawai) {
+    if (!pegawai) return '';
+    return pegawai['TIM'] ||
+        pegawai['Tim'] ||
+        pegawai['TIM DIVISI'] ||
+        pegawai['TIM (DIVISI)'] ||
+        pegawai['TIM(DIVISI)'] ||
+        pegawai['DIVISI'] ||
+        pegawai['Divisi'] ||
+        pegawai.DIVISI ||
+        '';
+}
+
+function normalizeLaptopStatus(status) {
+    var s = String(status || '').trim().toLowerCase();
+    if (s === 'dipinjam') return 'dipinjam';
+    if (s.indexOf('rusak') === 0) return 'rusak';
+    return 'tersedia';
+}
+
+function showStatusLaptopModal(statusType) {
+    var modal = document.getElementById('statusLaptopModal');
+    var title = document.getElementById('statusLaptopModalTitle');
+    var body = document.getElementById('statusLaptopModalBody');
+    var empty = document.getElementById('statusLaptopModalEmpty');
+    if (!modal || !title || !body || !empty) return;
+
+    var statusLabel = {
+        tersedia: 'Tersedia',
+        dipinjam: 'Dipinjam',
+        rusak: 'Rusak'
+    };
+    title.textContent = 'Riwayat Laptop - ' + (statusLabel[statusType] || 'Semua');
+
+    var filtered = AppState.laptops.filter(function (laptop) {
+        return normalizeLaptopStatus(laptop.STATUS) === statusType;
+    });
+
+    body.innerHTML = '';
+    if (!filtered.length) {
+        empty.style.display = 'block';
+    } else {
+        empty.style.display = 'none';
+        filtered.forEach(function (laptop, idx) {
+            var tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.title = 'Klik untuk lihat riwayat peminjam laptop ini';
+            tr.onclick = function () {
+                showLaptopBorrowHistoryModal(laptop.ID || '');
+            };
+            tr.innerHTML =
+                '<td>' + (idx + 1) + '</td>' +
+                '<td><strong>' + escapeHtml(laptop.ID || '-') + '</strong></td>' +
+                '<td>' + escapeHtml(laptop.MERK || '-') + '</td>' +
+                '<td>' + escapeHtml(laptop.TYPE || '-') + '</td>' +
+                '<td>' + escapeHtml(laptop.STATUS || '-') + '</td>';
+            body.appendChild(tr);
+        });
+    }
+
+    modal.style.display = 'flex';
+    modal.classList.add('show');
+}
+
+function closeStatusLaptopModal() {
+    var modal = document.getElementById('statusLaptopModal');
+    if (!modal) return;
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+}
+
+function showLaptopBorrowHistoryModal(laptopId) {
+    var modal = document.getElementById('laptopBorrowHistoryModal');
+    var title = document.getElementById('laptopBorrowHistoryTitle');
+    var body = document.getElementById('laptopBorrowHistoryBody');
+    var empty = document.getElementById('laptopBorrowHistoryEmpty');
+    if (!modal || !title || !body || !empty || !laptopId) return;
+
+    var laptop = AppState.laptops.find(function (l) { return l.ID === laptopId; });
+    var laptopName = laptop ? ((laptop.MERK || '-') + ' ' + (laptop.TYPE || '-')) : laptopId;
+    title.textContent = 'Riwayat Peminjam Laptop - ' + laptopId + ' (' + laptopName + ')';
+
+    var rows = AppState.peminjaman
+        .filter(function (p) { return String(p.LAPTOP_ID || '') === String(laptopId); })
+        .sort(function (a, b) {
+            var ta = Number(a.LAST_ACTION_TIME) || parseTimestamp(a.Timestamp) || new Date(a.TGL_PINJAM).getTime() || 0;
+            var tb = Number(b.LAST_ACTION_TIME) || parseTimestamp(b.Timestamp) || new Date(b.TGL_PINJAM).getTime() || 0;
+            return tb - ta;
+        });
+
+    body.innerHTML = '';
+    if (!rows.length) {
+        empty.style.display = 'block';
+    } else {
+        empty.style.display = 'none';
+        rows.forEach(function (row, idx) {
+            var kembali = AppState.pengembalian.find(function (k) {
+                return String(k.PEMINJAMAN_ID || '') === String(row.ID || '');
+            });
+            var tglRealisasi = kembali ? (kembali.TGL_REALISASI_PENGEMBALIAN || '-') : (row.TGL_REALISASI_PENGEMBALIAN || '-');
+
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td>' + (idx + 1) + '</td>' +
+                '<td>' + escapeHtml(row.NAMA_PEMINJAM || '-') + '</td>' +
+                '<td>' + formatDate(row.TGL_PINJAM) + '</td>' +
+                '<td>' + formatDate(row.TGL_KEMBALI_RENCANA) + '</td>' +
+                '<td>' + formatDate(tglRealisasi) + '</td>' +
+                '<td>' + escapeHtml(row.STATUS || '-') + '</td>';
+            body.appendChild(tr);
+        });
+    }
+
+    closeStatusLaptopModal();
+    modal.style.display = 'flex';
+    modal.classList.add('show');
+}
+
+function closeLaptopBorrowHistoryModal() {
+    var modal = document.getElementById('laptopBorrowHistoryModal');
+    if (!modal) return;
+    modal.classList.remove('show');
+    modal.style.display = 'none';
 }
