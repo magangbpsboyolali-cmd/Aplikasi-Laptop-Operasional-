@@ -207,6 +207,11 @@ function appendData(sheetName, rowObj) {
 
     var rowData = headers.map(function (h) { return rowObj[h] !== undefined ? rowObj[h] : ''; });
 
+    if (sheetName === 'Data Peminjaman') {
+        var validation = validateBorrowDuration(rowObj);
+        if (!validation.success) return validation;
+    }
+
     // Insert latest records at the top for history sheets
     if (sheetName === 'Data Peminjaman' || sheetName === 'Data Pengembalian') {
         sheet.insertRowsAfter(1, 1);
@@ -218,6 +223,50 @@ function appendData(sheetName, rowObj) {
     }
 
     return { success: true, message: 'Row appended to ' + sheetName };
+}
+
+function validateBorrowDuration(rowObj) {
+    var maxBorrowDays = 5;
+    var startDate = parseDateOnly(rowObj.TGL_PINJAM);
+    var endDate = parseDateOnly(rowObj.TGL_KEMBALI_RENCANA);
+
+    if (!startDate || !endDate) {
+        return { success: false, error: 'Tanggal pinjam/pengembalian tidak valid.' };
+    }
+
+    var diffDays = Math.round((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+    if (diffDays < 0) {
+        return { success: false, error: 'Tanggal kembali tidak boleh sebelum tanggal pinjam.' };
+    }
+
+    if (diffDays > maxBorrowDays) {
+        return {
+            success: false,
+            error: 'Maksimal peminjaman per user adalah 5 hari dari tanggal pinjam.'
+        };
+    }
+
+    return { success: true };
+}
+
+function parseDateOnly(value) {
+    if (value === null || value === undefined) return null;
+    var dateText = String(value).trim();
+    if (!dateText) return null;
+
+    var slashMatch = dateText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (slashMatch) {
+        var day = ('0' + slashMatch[1]).slice(-2);
+        var month = ('0' + slashMatch[2]).slice(-2);
+        var year = slashMatch[3];
+        var parsedSlash = new Date(year + '-' + month + '-' + day + 'T00:00:00');
+        if (!isNaN(parsedSlash.getTime())) return parsedSlash;
+    }
+
+    var onlyDate = dateText.split('T')[0];
+    var parsed = new Date(onlyDate + 'T00:00:00');
+    if (isNaN(parsed.getTime())) return null;
+    return parsed;
 }
 
 // ==========================================

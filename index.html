@@ -9,7 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20260414-1">
 </head>
 
 <body>
@@ -139,6 +139,12 @@
                         </div>
                     </div>
 
+                    <div class="history-status-legend" aria-label="Keterangan status riwayat">
+                        <span class="legend-item"><span class="history-status-dot history-status-green"></span> Dikembalikan</span>
+                        <span class="legend-item"><span class="history-status-dot history-status-yellow"></span> Belum kembali di hari terakhir</span>
+                        <span class="legend-item"><span class="history-status-dot history-status-red"></span> Belum kembali di hari ke-5</span>
+                    </div>
+
                     <!-- Table -->
                     <div class="table-responsive">
                         <table class="data-table" id="riwayatTable">
@@ -150,6 +156,7 @@
                                     <th>Tgl Pinjam</th>
                                     <th>Tgl Pengembalian</th>
                                     <th>Tgl Realisasi Pengembalian</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody id="riwayatBody">
@@ -423,8 +430,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="config.js"></script>
-    <script src="app.js"></script>
+    <script src="config.js?v=20260414-1"></script>
+    <script src="app.js?v=20260414-1"></script>
 </body>
 
 </html>

@@ -825,6 +825,48 @@ body::before {
     color: var(--success-dark);
 }
 
+.history-status-dot {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(15, 23, 42, 0.18);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 3px 10px rgba(15, 23, 42, 0.12);
+    vertical-align: middle;
+}
+
+.history-status-green {
+    background: linear-gradient(180deg, #34d399, #059669);
+}
+
+.history-status-yellow {
+    background: linear-gradient(180deg, #fde047, #eab308);
+}
+
+.history-status-red {
+    background: linear-gradient(180deg, #fb7185, #e11d48);
+}
+
+.history-status-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.2rem;
+    margin: 0.85rem 0 0.7rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.history-status-legend .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 600;
+}
+
+#riwayatTable tbody td:last-child {
+    text-align: center;
+}
+
 /* ===== FORMS ===== */
 .form-card .card-body {
     padding: 2rem;

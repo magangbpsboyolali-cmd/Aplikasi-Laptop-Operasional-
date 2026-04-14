@@ -19,6 +19,8 @@ const AppState = {
     refreshTimer: null
 };
 
+const MAX_BORROW_DAYS = 5;
+
 // ==========================================
 // INITIALIZATION
 // ==========================================
@@ -46,9 +48,104 @@ function setCurrentDate() {
     // Set default date for forms
     const today = new Date().toISOString().split('T')[0];
     const pinjamTgl = document.getElementById('pinjamTglPinjam');
+    const pinjamTglKembali = document.getElementById('pinjamTglKembali');
     const kembaliTgl = document.getElementById('kembaliTglRealisasi');
     if (pinjamTgl) pinjamTgl.value = today;
+    if (pinjamTglKembali) pinjamTglKembali.value = today;
     if (kembaliTgl) kembaliTgl.value = today;
+
+    applyPeminjamanDateLimit();
+}
+
+function formatDateInputValue(dateObj) {
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) return '';
+    return dateObj.toISOString().split('T')[0];
+}
+
+function parseDateValue(dateStr) {
+    if (!dateStr) return null;
+    var raw = String(dateStr).trim();
+    if (!raw) return null;
+
+    // Support dd/MM/yyyy format.
+    var slashMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (slashMatch) {
+        var day = slashMatch[1].padStart(2, '0');
+        var month = slashMatch[2].padStart(2, '0');
+        var year = slashMatch[3];
+        var fromSlash = new Date(year + '-' + month + '-' + day + 'T00:00:00');
+        return isNaN(fromSlash.getTime()) ? null : fromSlash;
+    }
+
+    var normalized = raw.split('T')[0];
+    var parsed = new Date(normalized + 'T00:00:00');
+    return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function addDaysToDate(dateStr, days) {
+    const d = parseDateValue(dateStr);
+    if (!d || isNaN(d.getTime())) return null;
+    d.setDate(d.getDate() + days);
+    return d;
+}
+
+function getBorrowDurationDays(startDateStr, endDateStr) {
+    const start = parseDateValue(startDateStr);
+    const end = parseDateValue(endDateStr);
+    if (!start || !end) return NaN;
+    const msPerDay = 24 * 60 * 60 * 1000;
+    return Math.round((end - start) / msPerDay);
+}
+
+function applyPeminjamanDateLimit() {
+    const tglPinjamEl = document.getElementById('pinjamTglPinjam');
+    const tglKembaliEl = document.getElementById('pinjamTglKembali');
+    if (!tglPinjamEl || !tglKembaliEl || !tglPinjamEl.value) return;
+
+    const startDate = tglPinjamEl.value;
+    const maxReturnDateDate = addDaysToDate(startDate, MAX_BORROW_DAYS);
+    const maxReturnDate = formatDateInputValue(maxReturnDateDate);
+    if (!maxReturnDate) return;
+
+    tglKembaliEl.min = startDate;
+    tglKembaliEl.max = maxReturnDate;
+
+    if (!tglKembaliEl.value || tglKembaliEl.value < startDate || tglKembaliEl.value > maxReturnDate) {
+        tglKembaliEl.value = maxReturnDate;
+    }
+}
+
+function getHistoryStatus(peminjamanRow, tglRealisasi) {
+    if (tglRealisasi && tglRealisasi !== '-') {
+        return {
+            label: 'Dikembalikan',
+            className: 'history-status-green'
+        };
+    }
+
+    var today = formatDateInputValue(new Date());
+    var hardLimitObj = addDaysToDate(peminjamanRow.TGL_PINJAM, MAX_BORROW_DAYS);
+    var hardLimitDate = formatDateInputValue(hardLimitObj);
+    var dueDate = String(peminjamanRow.TGL_KEMBALI_RENCANA || '').trim();
+
+    if (hardLimitDate && today >= hardLimitDate) {
+        return {
+            label: 'Belum dikembalikan sampai hari ke-5',
+            className: 'history-status-red'
+        };
+    }
+
+    if (dueDate && today >= dueDate) {
+        return {
+            label: 'Belum dikembalikan di hari terakhir peminjaman',
+            className: 'history-status-yellow'
+        };
+    }
+
+    return {
+        label: 'Masih masa peminjaman',
+        className: 'history-status-yellow'
+    };
 }
 
 // ==========================================
@@ -107,6 +204,11 @@ function initForms() {
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
+    }
+
+    const tglPinjamEl = document.getElementById('pinjamTglPinjam');
+    if (tglPinjamEl) {
+        tglPinjamEl.addEventListener('change', applyPeminjamanDateLimit);
     }
 
     // Auto-fill tim on pegawai select
@@ -516,6 +618,7 @@ function renderRiwayat(filteredData) {
         });
 
         var tglRealisasi = kembali ? (kembali.TGL_REALISASI_PENGEMBALIAN || '-') : '-';
+        var statusRiwayat = getHistoryStatus(p, tglRealisasi);
 
         // Laptop info
         var laptop = AppState.laptops.find(function (l) { return l.ID === p.LAPTOP_ID; });
@@ -528,7 +631,8 @@ function renderRiwayat(filteredData) {
             '<td>' + escapeHtml(p.NAMA_PEMINJAM || '-') + '</td>' +
             '<td>' + formatDate(p.TGL_PINJAM) + '</td>' +
             '<td>' + formatDate(p.TGL_KEMBALI_RENCANA) + '</td>' +
-            '<td>' + formatDate(tglRealisasi) + '</td>';
+            '<td>' + formatDate(tglRealisasi) + '</td>' +
+            '<td><span class="history-status-dot ' + statusRiwayat.className + '" title="' + escapeHtml(statusRiwayat.label) + '"></span></td>';
         body.appendChild(tr);
     });
 
@@ -789,6 +893,8 @@ function populatePeminjamanForm() {
     const today = new Date().toISOString().split('T')[0];
     const tglPinjam = document.getElementById('pinjamTglPinjam');
     if (tglPinjam && !tglPinjam.value) tglPinjam.value = today;
+
+    applyPeminjamanDateLimit();
 }
 
 
@@ -816,8 +922,21 @@ function handlePeminjaman(e) {
     }
 
     // Validate dates
-    if (new Date(tglKembali) < new Date(tglPinjam)) {
+    const parsedTglPinjam = parseDateValue(tglPinjam);
+    const parsedTglKembali = parseDateValue(tglKembali);
+    if (!parsedTglPinjam || !parsedTglKembali) {
+        showToast('Format tanggal tidak valid. Gunakan tanggal yang disediakan sistem.', 'error');
+        return;
+    }
+
+    if (parsedTglKembali < parsedTglPinjam) {
         showToast('Tanggal kembali tidak boleh sebelum tanggal pinjam!', 'error');
+        return;
+    }
+
+    const durasiPinjamHari = getBorrowDurationDays(tglPinjam, tglKembali);
+    if (isNaN(durasiPinjamHari) || durasiPinjamHari > MAX_BORROW_DAYS) {
+        showToast('Maksimal peminjaman adalah 5 hari dari tanggal pinjam.', 'error');
         return;
     }
 
