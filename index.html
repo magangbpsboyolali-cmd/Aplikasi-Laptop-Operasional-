@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JamLaper</title>
+    <meta name="description" content="Aplikasi Peminjaman Laptop Operasional BPS Kabupaten Boyolali">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Top Header Bar -->
+    <header class="top-header">
+        <div class="header-left">
+            <div class="logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/Lambang_Badan_Pusat_Statistik_%28BPS%29_Indonesia.svg"
+                    alt="BPS Logo" class="logo-img">
+                <div class="logo-text">
+                    <span class="logo-title">JamLaper</span>
+                    <span class="logo-sub">Peminjaman Laptop Operasional<br> BPS Kabupaten Boyolali</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="sync-badge" id="syncBadge" title="Status koneksi spreadsheet">
+                <div class="sync-dot" id="syncDot"></div>
+                <span id="syncLabel">Offline</span>
+            </div>
+            <span class="date-badge" id="currentDate"></span>
+            <button class="btn-icon" onclick="refreshData()" title="Refresh data">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="btn-icon" id="logoutButton" onclick="logout()" title="Logout" style="display:none;">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- ===================== LOGIN PAGE ===================== -->
+        <section class="page active" id="loginPage">
+            <div class="page-top-bar">
+                <div>
+                    <h1 class="page-title">Login Kode Akses</h1>
+                    <p class="page-subtitle">Masukkan kode akses yang ada di sheet Kode Akses.</p>
+                </div>
+            </div>
+            <div class="card form-card">
+                <div class="card-body">
+                    <form id="loginForm" class="app-form" autocomplete="off">
+                        <div class="form-grid">
+                            <div class="form-group full-span">
+                                <label for="loginCode"><i class="fas fa-key"></i> Kode Akses</label>
+                                <input type="text" id="loginCode" placeholder="Masukkan kode" required>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Masuk</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================== DASHBOARD PAGE ===================== -->
+        <section class="page" id="dashboardPage">
+
+            <!-- Stat Cards -->
+            <div class="stats-row">
+                <div class="stat-card stat-available">
+                    <div class="stat-card-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-card-body">
+                        <span class="stat-number" id="statTersedia">0</span>
+                        <span class="stat-label">Tersedia</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-borrowed">
+                    <div class="stat-card-icon"><i class="fas fa-hand-holding"></i></div>
+                    <div class="stat-card-body">
+                        <span class="stat-number" id="statDipinjam">0</span>
+                        <span class="stat-label">Dipinjam</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-broken">
+                    <div class="stat-card-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="stat-card-body">
+                        <span class="stat-number" id="statRusak">0</span>
+                        <span class="stat-label">Rusak</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="quick-actions">
+                <button class="qa-btn qa-pinjam" onclick="showPage('peminjaman')">
+                    <div class="qa-icon"><i class="fas fa-hand-holding-heart"></i></div>
+                    <div class="qa-text">
+                        <span class="qa-title">Form Peminjaman</span>
+                        <span class="qa-desc">Ajukan peminjaman laptop</span>
+                    </div>
+                    <i class="fas fa-arrow-right qa-arrow"></i>
+                </button>
+                <button class="qa-btn qa-kembali" onclick="showPage('pengembalian')">
+                    <div class="qa-icon"><i class="fas fa-undo-alt"></i></div>
+                    <div class="qa-text">
+                        <span class="qa-title">Form Pengembalian</span>
+                        <span class="qa-desc">Kembalikan laptop pinjaman</span>
+                    </div>
+                    <i class="fas fa-arrow-right qa-arrow"></i>
+                </button>
+            </div>
+
+            <!-- Riwayat Peminjaman Section -->
+            <div class="card" id="riwayatCard">
+                <div class="card-header">
+                    <h2><i class="fas fa-history"></i> Riwayat Peminjaman</h2>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Bar -->
+                    <div class="filter-bar">
+                        <div class="filter-bar-left">
+                            <label class="filter-bar-label"><i class="fas fa-filter"></i> Filter:</label>
+                            <select id="filterType" class="filter-select" onchange="onFilterTypeChange()">
+                                <option value="semua">Tampilkan Semua</option>
+                                <option value="laptop">Berdasarkan Laptop</option>
+                                <option value="nama">Berdasarkan Nama</option>
+                                <option value="tanggal">Berdasarkan Rentang Waktu</option>
+                            </select>
+                        </div>
+                        <div class="filter-bar-input" id="filterInputArea">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-responsive">
+                        <table class="data-table" id="riwayatTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama Laptop</th>
+                                    <th>Nama Peminjam</th>
+                                    <th>Tgl Pinjam</th>
+                                    <th>Tgl Pengembalian</th>
+                                    <th>Tgl Realisasi Pengembalian</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riwayatBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-empty" id="riwayatEmpty" style="display:none;">
+                        <i class="fas fa-inbox"></i>
+                        <p>Belum ada data riwayat peminjaman</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================== PEMINJAMAN PAGE ===================== -->
+        <section class="page" id="peminjamanPage">
+            <div class="page-top-bar">
+                <div>
+                    <h1 class="page-title">Form Peminjaman Laptop</h1>
+                    <p class="page-subtitle">Isi form berikut untuk meminjam laptop</p>
+                </div>
+                <button class="btn btn-outline" onclick="showPage('dashboard')">
+                    <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+                </button>
+            </div>
+
+            <div class="card form-card">
+                <div class="card-body">
+                    <form id="formPeminjaman" class="app-form" autocomplete="off">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="pinjamLaptop"><i class="fas fa-laptop"></i> Pilih Laptop</label>
+                                <select id="pinjamLaptop" required>
+                                    <option value="">-- Pilih Laptop --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="pinjamNama"><i class="fas fa-user"></i> Nama Peminjam</label>
+                                <select id="pinjamNama" required>
+                                    <option value="">-- Pilih Pegawai --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="pinjamDivisi"><i class="fas fa-building"></i> Divisi</label>
+                                <input type="text" id="pinjamDivisi" readonly placeholder="Otomatis dari data pegawai">
+                            </div>
+                            <div class="form-group">
+                                <label for="pinjamKeperluan"><i class="fas fa-clipboard-list"></i> Keperluan</label>
+                                <select id="pinjamKeperluan" required>
+                                    <option value="">-- Pilih Keperluan --</option>
+                                    <option value="Kegiatan Lapangan">Kegiatan Lapangan</option>
+                                    <option value="Rapat">Rapat</option>
+                                    <option value="Pelatihan">Pelatihan</option>
+                                    <option value="Dinas Luar">Dinas Luar</option>
+                                    <option value="Pengolahan Data">Pengolahan Data</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-span">
+                                <label for="pinjamDeskripsi"><i class="fas fa-align-left"></i> Deskripsi
+                                    Keperluan</label>
+                                <textarea id="pinjamDeskripsi" rows="2"
+                                    placeholder="Jelaskan secara singkat keperluan peminjaman..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="pinjamTglPinjam"><i class="fas fa-calendar-alt"></i> Tanggal
+                                    Pinjam</label>
+                                <input type="date" id="pinjamTglPinjam" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="pinjamTglKembali"><i class="fas fa-calendar-check"></i> Perkiraan
+                                    Pengembalian</label>
+                                <input type="date" id="pinjamTglKembali" required>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="reset" class="btn btn-secondary"><i class="fas fa-eraser"></i>
+                                Reset</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Ajukan
+                                Peminjaman</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================== PENGEMBALIAN PAGE ===================== -->
+        <section class="page" id="pengembalianPage">
+            <div class="page-top-bar">
+                <div>
+                    <h1 class="page-title">Form Pengembalian Laptop</h1>
+                    <p class="page-subtitle">Pilih pegawai, lalu klik laptop yang akan dikembalikan</p>
+                </div>
+                <button class="btn btn-outline" onclick="showPage('dashboard')">
+                    <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+                </button>
+            </div>
+
+            <!-- Step 1: Select Employee -->
+            <div class="card form-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-user-check"></i> Langkah 1: Pilih Pegawai</h2>
+                </div>
+                <div class="card-body">
+                    <div class="app-form">
+                        <div class="form-group" style="max-width:500px;">
+                            <label for="kembaliPegawai"><i class="fas fa-users"></i> Nama Pegawai</label>
+                            <select id="kembaliPegawai" onchange="onSelectPegawaiKembali()">
+                                <option value="">-- Pilih Pegawai --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Show active loans -->
+            <div class="card form-card" id="kembaliListCard" style="display:none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-list"></i> Langkah 2: Pilih Laptop yang Dikembalikan</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Kode Laptop</th>
+                                    <th>Merk/Type</th>
+                                    <th>Tgl Pinjam</th>
+                                    <th>Perkiraan Kembali</th>
+                                    <th>Keperluan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kembaliListBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-empty" id="kembaliEmpty" style="display:none;">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Pegawai ini tidak memiliki peminjaman aktif</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Confirm return -->
+            <div class="card form-card" id="kembaliFormCard" style="display:none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-clipboard-check"></i> Langkah 3: Konfirmasi Pengembalian</h2>
+                </div>
+                <div class="card-body">
+                    <div class="return-detail-grid" id="returnDetailGrid">
+                    </div>
+                    <form id="formPengembalian" class="app-form" style="margin-top:1.5rem;">
+                        <input type="hidden" id="kembaliPeminjamanId">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="kembaliTglRealisasi"><i class="fas fa-calendar-day"></i> Tanggal Realisasi
+                                    Pengembalian</label>
+                                <input type="date" id="kembaliTglRealisasi" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="kembaliKondisi"><i class="fas fa-heartbeat"></i> Kondisi Laptop</label>
+                                <select id="kembaliKondisi" required>
+                                    <option value="Baik">Baik</option>
+                                    <option value="Rusak Ringan">Rusak Ringan</option>
+                                    <option value="Rusak Berat">Rusak Berat</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-span">
+                                <label for="kembaliCatatan"><i class="fas fa-sticky-note"></i> Catatan</label>
+                                <textarea id="kembaliCatatan" rows="2"
+                                    placeholder="Catatan tambahan (opsional)"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="cancelReturn()"><i
+                                    class="fas fa-times"></i> Batal</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Proses
+                                Pengembalian</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle" id="toastIcon"></i>
+        <span id="toastMsg">Berhasil!</span>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation"></i>
+            </div>
+            <h3 class="modal-title">Konfirmasi Peminjaman</h3>
+            <p class="modal-text" id="confirmModalText">Apakah Anda yakin ingin meminjam laptop ini?</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">Batal</button>
+                <button class="btn btn-primary" id="confirmModalBtn">Konfirmasi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader">
+            <div class="loader-spinner"></div>
+            <p id="loadingText">Memuat data...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+    <script src="config.js"></script>
+</body>
+
+</html>
