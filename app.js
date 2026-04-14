@@ -1409,8 +1409,13 @@ function getPegawaiTim(pegawai) {
 
 function normalizeLaptopStatus(status) {
     var s = String(status || '').trim().toLowerCase();
+
     if (s === 'dipinjam') return 'dipinjam';
-    if (s.indexOf('rusak') === 0) return 'rusak';
+
+    // ❌ HANYA rusak berat yang dianggap rusak
+    if (s === 'rusak berat') return 'rusak';
+
+    // ✅ rusak ringan tetap dianggap tersedia
     return 'tersedia';
 }
 
