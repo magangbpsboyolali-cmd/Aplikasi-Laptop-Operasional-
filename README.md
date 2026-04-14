@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Aplikasi Laptop Operasional - BPS
 
 Sistem dashboard web untuk pendataan laptop dan peralatan inventaris kantor dengan fitur QR Code dan integrasi Google Spreadsheet.
@@ -127,3 +128,5 @@ Untuk bantuan lebih lanjut, hubungi tim IT atau admin sistem.
 
 ---
 © 2026 Sistem Pendataan Inventaris - BPS
+=======
+
