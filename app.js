@@ -93,8 +93,19 @@ function getBorrowDurationDays(startDateStr, endDateStr) {
     const start = parseDateValue(startDateStr);
     const end = parseDateValue(endDateStr);
     if (!start || !end) return NaN;
+
     const msPerDay = 24 * 60 * 60 * 1000;
-    return Math.round((end - start) / msPerDay);
+
+    // FIX: pakai floor biar tidak kelebihan hari
+    return Math.floor((end - start) / msPerDay) + 1;
+}
+
+
+function normalizeDate(d) {
+    if (!d) return null;
+    const newDate = new Date(d);
+    newDate.setHours(0, 0, 0, 0);
+    return newDate;
 }
 
 function applyPeminjamanDateLimit() {
@@ -116,32 +127,63 @@ function applyPeminjamanDateLimit() {
 }
 
 function getHistoryStatus(peminjamanRow, tglRealisasi) {
+    var tglPinjam = normalizeDate(parseDateValue(peminjamanRow.TGL_PINJAM));
+    var rencanaKembali = normalizeDate(parseDateValue(peminjamanRow.TGL_KEMBALI_RENCANA));
+
+    // ===============================
+    // SUDAH DIKEMBALIKAN
+    // ===============================
     if (tglRealisasi && tglRealisasi !== '-') {
+        var realisasiDate = normalizeDate(parseDateValue(tglRealisasi));
+
+        if (tglPinjam && realisasiDate) {
+            var borrowDays = getBorrowDurationDays(
+                peminjamanRow.TGL_PINJAM,
+                tglRealisasi
+            );
+
+            // 🔴 MERAH → lebih dari 5 hari
+            if (!isNaN(borrowDays) && borrowDays >= MAX_BORROW_DAYS) {
+                return {
+                    label: 'Dikembalikan lewat 5 hari',
+                    className: 'history-status-red'
+                };
+            }
+        }
+
+        // 🟢 HIJAU → tepat waktu (≤ 5 hari)
         return {
-            label: 'Dikembalikan',
+            label: 'Dikembalikan tepat waktu',
             className: 'history-status-green'
         };
     }
 
-    var today = formatDateInputValue(new Date());
-    var hardLimitObj = addDaysToDate(peminjamanRow.TGL_PINJAM, MAX_BORROW_DAYS);
-    var hardLimitDate = formatDateInputValue(hardLimitObj);
-    var dueDate = String(peminjamanRow.TGL_KEMBALI_RENCANA || '').trim();
+    // ===============================
+    // BELUM DIKEMBALIKAN
+    // ===============================
+    var today = normalizeDate(new Date());
 
-    if (hardLimitDate && today >= hardLimitDate) {
+    var batasMax = normalizeDate(
+        addDaysToDate(peminjamanRow.TGL_PINJAM, MAX_BORROW_DAYS)
+    );
+
+    // 🔴 MERAH → lewat 5 hari dari pinjam
+    if (batasMax && today > batasMax) {
         return {
-            label: 'Belum dikembalikan sampai hari ke-5',
+            label: 'Belum dikembalikan > 5 hari',
             className: 'history-status-red'
         };
     }
 
-    if (dueDate && today >= dueDate) {
+    // 🟡 KUNING → lewat rencana tapi belum 5 hari
+    if (rencanaKembali && today > rencanaKembali) {
         return {
-            label: 'Belum dikembalikan di hari terakhir peminjaman',
+            label: 'Lewat tanggal rencana',
             className: 'history-status-yellow'
         };
     }
 
+    // 🟡 KUNING → masih masa peminjaman
     return {
         label: 'Masih masa peminjaman',
         className: 'history-status-yellow'

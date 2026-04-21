@@ -5,6 +5,7 @@
 
 // GANTI DENGAN ID SPREADSHEET ANDA
 const SPREADSHEET_ID = '12QxeGdy0sVTR2lqh0zxerzFM6HDXP_nuR-a4MOURj88';
+var MAX_BORROW_DAYS = 5;
 
 function doGet(e) { return handleRequest(e); }
 function doPost(e) { return handleRequest(e); }
@@ -226,7 +227,6 @@ function appendData(sheetName, rowObj) {
 }
 
 function validateBorrowDuration(rowObj) {
-    var maxBorrowDays = 5;
     var startDate = parseDateOnly(rowObj.TGL_PINJAM);
     var endDate = parseDateOnly(rowObj.TGL_KEMBALI_RENCANA);
 
@@ -239,7 +239,7 @@ function validateBorrowDuration(rowObj) {
         return { success: false, error: 'Tanggal kembali tidak boleh sebelum tanggal pinjam.' };
     }
 
-    if (diffDays > maxBorrowDays) {
+    if (diffDays >= MAX_BORROW_DAYS) {
         return {
             success: false,
             error: 'Maksimal peminjaman per user adalah 5 hari dari tanggal pinjam.'
