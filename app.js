@@ -666,6 +666,31 @@ function renderRiwayat(filteredData) {
         var laptop = AppState.laptops.find(function (l) { return l.ID === p.LAPTOP_ID; });
         var laptopName = laptop ? ('[' + laptop.ID + '] ' + laptop.TYPE) : (p.LAPTOP_ID || '-');
 
+        // Status indicator logic:
+        // - Jika sudah realisasi: tampil hijau/merah sesuai status
+        // - Jika belum realisasi + dalam rencana: kosong
+        // - Jika belum realisasi + lewat rencana: kuning (reminder)
+        // - Jika belum realisasi + lewat 5 hari: merah
+        var statusIndicator = '';
+        if (tglRealisasi && tglRealisasi !== '-') {
+            // Sudah dikembalikan - tampil indicator
+            statusIndicator = '<span class="history-status-dot ' + statusRiwayat.className + '" title="' + escapeHtml(statusRiwayat.label) + '"></span>';
+        } else {
+            // Belum dikembalikan - cek kondisi untuk reminder/alert
+            var today = normalizeDate(new Date());
+            var rencanaKembali = normalizeDate(parseDateValue(p.TGL_KEMBALI_RENCANA));
+            var batasMax = normalizeDate(addDaysToDate(p.TGL_PINJAM, MAX_BORROW_DAYS));
+            
+            // Kuning: reminder jika sudah lewat rencana tapi belum 5 hari
+            if (rencanaKembali && today > rencanaKembali && (!batasMax || today <= batasMax)) {
+                statusIndicator = '<span class="history-status-dot history-status-yellow" title="Reminder: Sudah lewat tanggal rencana kembali"></span>';
+            }
+            // Merah: kritis jika sudah lewat 5 hari
+            else if (batasMax && today > batasMax) {
+                statusIndicator = '<span class="history-status-dot history-status-red" title="Alert: Sudah lewat 5 hari dari peminjaman"></span>';
+            }
+        }
+
         var tr = document.createElement('tr');
         tr.innerHTML =
             '<td>' + (startIndex + idx + 1) + '</td>' +
@@ -674,7 +699,7 @@ function renderRiwayat(filteredData) {
             '<td>' + formatDate(p.TGL_PINJAM) + '</td>' +
             '<td>' + formatDate(p.TGL_KEMBALI_RENCANA) + '</td>' +
             '<td>' + formatDate(tglRealisasi) + '</td>' +
-            '<td><span class="history-status-dot ' + statusRiwayat.className + '" title="' + escapeHtml(statusRiwayat.label) + '"></span></td>';
+            '<td>' + statusIndicator + '</td>';
         body.appendChild(tr);
     });
 
