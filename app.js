@@ -1615,6 +1615,7 @@ function showStatusLaptopModal(statusType) {
                 '<td><strong>' + escapeHtml(laptop.ID || '-') + '</strong></td>' +
                 '<td>' + escapeHtml(laptop.MERK || '-') + '</td>' +
                 '<td>' + escapeHtml(laptop.TYPE || '-') + '</td>' +
+                '<td>' + escapeHtml(laptop.NOP || '-') + '</td>' +
                 '<td>' + escapeHtml(laptop.STATUS || '-') + '</td>';
             body.appendChild(tr);
         });
