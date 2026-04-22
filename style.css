@@ -786,6 +786,18 @@ body::before {
     font-size: 0.82rem;
 }
 
+/* Center align all columns in status laptop modal */
+#statusLaptopModal .data-table thead th,
+#statusLaptopModal .data-table tbody td {
+    text-align: center;
+}
+
+/* Center align all columns in laptop borrow history modal */
+#laptopBorrowHistoryModal .data-table thead th,
+#laptopBorrowHistoryModal .data-table tbody td {
+    text-align: center;
+}
+
 .table-empty {
     text-align: center;
     padding: 3.5rem 1rem;
