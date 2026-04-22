@@ -1660,6 +1660,17 @@ function showLaptopBorrowHistoryModal(laptopId) {
                 return String(k.PEMINJAMAN_ID || '') === String(row.ID || '');
             });
             var tglRealisasi = kembali ? (kembali.TGL_REALISASI_PENGEMBALIAN || '-') : (row.TGL_REALISASI_PENGEMBALIAN || '-');
+            var kondisi = kembali ? (kembali.KONDISI_PENGEMBALIAN || kembali.KONDISI || '-') : '-';
+            var catatan = kembali ? (kembali.CATATAN_PENGEMBALIAN || kembali.CATATAN || '-') : '-';
+
+            // Apply condition styling
+            var kondisiClass = 'condition-baik';
+            if (kondisi === 'Rusak Ringan') {
+                kondisiClass = 'condition-rusak-ringan';
+            } else if (kondisi === 'Rusak Berat') {
+                kondisiClass = 'condition-rusak-berat';
+            }
+            var kondisiHtml = kondisi === '-' ? '-' : '<span class="' + kondisiClass + '">' + escapeHtml(kondisi) + '</span>';
 
             var tr = document.createElement('tr');
             tr.innerHTML =
@@ -1668,6 +1679,8 @@ function showLaptopBorrowHistoryModal(laptopId) {
                 '<td>' + formatDate(row.TGL_PINJAM) + '</td>' +
                 '<td>' + formatDate(row.TGL_KEMBALI_RENCANA) + '</td>' +
                 '<td>' + formatDate(tglRealisasi) + '</td>' +
+                '<td>' + kondisiHtml + '</td>' +
+                '<td>' + escapeHtml(catatan) + '</td>' +
                 '<td>' + escapeHtml(row.STATUS || '-') + '</td>';
             body.appendChild(tr);
         });
