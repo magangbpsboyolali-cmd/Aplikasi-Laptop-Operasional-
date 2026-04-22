@@ -892,7 +892,7 @@ function populatePeminjamanForm() {
             if (status === 'tersedia' || status === 'rusak ringan') {
                 const opt = document.createElement('option');
                 opt.value = l.ID;
-                opt.textContent = l.ID + ' - ' + l.MERK + ' ' + l.TYPE + (l.NOP ? ' (NUP: ' + l.NOP + ')' : '');
+                opt.textContent = l.ID + ' - ' + l.MERK + ' ' + l.TYPE + (l.NUP ? ' (NUP: ' + l.NUP + ')' : '');
                 laptopSelect.appendChild(opt);
             }
         });
@@ -1615,7 +1615,7 @@ function showStatusLaptopModal(statusType) {
                 '<td><strong>' + escapeHtml(laptop.ID || '-') + '</strong></td>' +
                 '<td>' + escapeHtml(laptop.MERK || '-') + '</td>' +
                 '<td>' + escapeHtml(laptop.TYPE || '-') + '</td>' +
-                '<td>' + escapeHtml(laptop.NOP || '-') + '</td>' +
+                '<td>' + escapeHtml(laptop.NUP || '-') + '</td>' +
                 '<td>' + escapeHtml(laptop.STATUS || '-') + '</td>';
             body.appendChild(tr);
         });

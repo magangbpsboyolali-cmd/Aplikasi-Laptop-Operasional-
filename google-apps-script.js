@@ -347,7 +347,7 @@ function setupSheets() {
     var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
     // 1. Data Laptop
-    createSheet(ss, 'Data Laptop', ['ID', 'MERK', 'TYPE', 'NOP', 'STATUS']);
+    createSheet(ss, 'Data Laptop', ['ID', 'MERK', 'TYPE', 'NUP', 'STATUS']);
 
     // 2. DATA PEGAWAI
     createSheet(ss, 'DATA PEGAWAI', ['NO', 'NIP', 'NAMA', 'TIM DIVISI']);
