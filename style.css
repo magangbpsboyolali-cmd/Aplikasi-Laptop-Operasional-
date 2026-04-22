@@ -155,7 +155,7 @@ body::before {
 }
 
 .logo-img {
-    height: 60px;
+    height: 100px;
     width: auto;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
@@ -890,6 +890,115 @@ body::before {
     font-weight: 500;
 }
 
+.detail-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-section-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--bg-card);
+    background: var(--primary);
+    margin: 0;
+    padding: 0.9rem 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.detail-section-title::before {
+    content: '';
+    display: none;
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 1.25rem;
+    padding: 1rem 1.25rem;
+    align-items: start;
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.15s ease;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row:hover {
+    background: var(--bg-subtle);
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: capitalize;
+    letter-spacing: 0.2px;
+    line-height: 1.4;
+}
+
+.detail-value {
+    color: var(--text);
+    word-break: break-word;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.5;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+#detailPeminjamanDeskripsi {
+    max-width: 100%;
+    display: block;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+#detailPeminjamanCatatan {
+    max-width: 100%;
+    display: block;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.detail-peminjaman-content {
+    max-height: 75vh;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.detail-peminjaman-content::-webkit-scrollbar {
+    width: 7px;
+}
+
+.detail-peminjaman-content::-webkit-scrollbar-track {
+    background: var(--bg-subtle);
+    border-radius: 4px;
+}
+
+.detail-peminjaman-content::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.detail-peminjaman-content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-light);
+}
+
 .condition-rusak-ringan {
     background: var(--warning-alpha);
     color: var(--warning-dark);
@@ -1351,7 +1460,7 @@ body::before {
     }
 
     .logo-img {
-        height: 42px;
+        height: 60px;
     }
 
     .logo-title {

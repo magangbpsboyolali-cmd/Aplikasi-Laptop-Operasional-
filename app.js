@@ -692,6 +692,12 @@ function renderRiwayat(filteredData) {
         }
 
         var tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.setAttribute('data-peminjaman-id', p.ID);
+        tr.setAttribute('title', 'Klik untuk melihat detail');
+        tr.onclick = function() {
+            showDetailPeminjamanModal(p.ID);
+        };
         tr.innerHTML =
             '<td>' + (startIndex + idx + 1) + '</td>' +
             '<td><strong>' + escapeHtml(laptopName) + '</strong></td>' +
@@ -1719,6 +1725,91 @@ function showLaptopBorrowHistoryModal(laptopId) {
 
 function closeLaptopBorrowHistoryModal() {
     var modal = document.getElementById('laptopBorrowHistoryModal');
+    if (!modal) return;
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+}
+
+function showDetailPeminjamanModal(peminjamanId) {
+    // Find peminjaman data
+    var peminjaman = AppState.peminjaman.find(function(p) { return p.ID === peminjamanId; });
+    if (!peminjaman) {
+        alert('Data peminjaman tidak ditemukan');
+        return;
+    }
+
+    // Find laptop data
+    var laptop = AppState.laptops.find(function(l) { return l.ID === peminjaman.LAPTOP_ID; });
+    
+    // Find pengembalian data
+    var kembali = AppState.pengembalian.find(function(k) { return k.PEMINJAMAN_ID === peminjamanId; });
+
+    // Populate data peminjam
+    document.getElementById('detailPeminjamanNama').textContent = peminjaman.NAMA_PEMINJAM || '-';
+    document.getElementById('detailPeminjamanNip').textContent = peminjaman.NIP || '-';
+    document.getElementById('detailPeminjamanDivisi').textContent = peminjaman.DIVISI || '-';
+
+    // Populate data laptop
+    document.getElementById('detailPeminjamanLaptopId').textContent = peminjaman.LAPTOP_ID || '-';
+    document.getElementById('detailPeminjamanMerk').textContent = laptop ? (laptop.MERK || '-') : '-';
+    document.getElementById('detailPeminjamanType').textContent = laptop ? (laptop.TYPE || '-') : '-';
+
+    // Populate data peminjaman
+    document.getElementById('detailPeminjamanTglPinjam').textContent = formatDate(peminjaman.TGL_PINJAM);
+    document.getElementById('detailPeminjamanTglRencana').textContent = formatDate(peminjaman.TGL_KEMBALI_RENCANA);
+
+    // Populate keperluan
+    document.getElementById('detailPeminjamanKeperluan').textContent = peminjaman.KEPERLUAN || '-';
+    var deskripsiEl = document.getElementById('detailPeminjamanDeskripsi');
+    if (peminjaman.DESKRIPSI_KEPERLUAN) {
+        deskripsiEl.textContent = peminjaman.DESKRIPSI_KEPERLUAN;
+        document.getElementById('detailPeminjamanDeskripsiRow').style.display = 'block';
+    } else {
+        document.getElementById('detailPeminjamanDeskripsiRow').style.display = 'none';
+    }
+
+    // Show/hide pengembalian section
+    if (kembali) {
+        document.getElementById('detailPeminjamanTglRealisasiRow').style.display = 'block';
+        document.getElementById('detailPeminjamanTglRealisasi').textContent = formatDate(kembali.TGL_REALISASI_PENGEMBALIAN);
+        
+        // Show pengembalian section
+        document.getElementById('detailPeminjamanPengembalianSection').style.display = 'block';
+        
+        // Kondisi with color coding
+        var kondisi = kembali.KONDISI_PENGEMBALIAN || '-';
+        var kondisiEl = document.getElementById('detailPeminjamanKondisi');
+        kondisiEl.textContent = kondisi;
+        
+        // Add class based on condition
+        kondisiEl.className = 'detail-value';
+        if (kondisi === 'Baik') {
+            kondisiEl.style.color = '#10b981';
+            kondisiEl.style.fontWeight = '600';
+        } else if (kondisi === 'Rusak Ringan' || kondisi === 'rusak-ringan') {
+            kondisiEl.style.color = '#f59e0b';
+            kondisiEl.style.fontWeight = '600';
+        } else if (kondisi === 'Rusak Berat' || kondisi === 'rusak-berat') {
+            kondisiEl.style.color = '#ef4444';
+            kondisiEl.style.fontWeight = '600';
+        }
+        
+        // Catatan
+        document.getElementById('detailPeminjamanCatatan').textContent = kembali.CATATAN_PENGEMBALIAN || '-';
+    } else {
+        document.getElementById('detailPeminjamanTglRealisasiRow').style.display = 'none';
+        document.getElementById('detailPeminjamanPengembalianSection').style.display = 'none';
+    }
+
+    // Show modal
+    var modal = document.getElementById('detailPeminjamanModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    modal.classList.add('show');
+}
+
+function closeDetailPeminjamanModal() {
+    var modal = document.getElementById('detailPeminjamanModal');
     if (!modal) return;
     modal.classList.remove('show');
     modal.style.display = 'none';

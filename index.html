@@ -18,8 +18,8 @@
     <header class="top-header">
         <div class="header-left">
             <div class="logo">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/Lambang_Badan_Pusat_Statistik_%28BPS%29_Indonesia.svg"
-                    alt="BPS Logo" class="logo-img">
+                <img src="logo_jamlaper-removebg.png"
+                    alt="JamLaper Logo" class="logo-img">
                 <div class="logo-text">
                     <span class="logo-title">JamLaper</span>
                     <span class="logo-sub">Peminjaman Laptop Operasional<br> BPS Kabupaten Boyolali</span>
@@ -420,6 +420,94 @@
             </div>
             <div class="modal-actions" style="margin-top:1rem;">
                 <button class="btn btn-secondary" onclick="closeLaptopBorrowHistoryModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Peminjaman Modal -->
+    <div class="modal-overlay" id="detailPeminjamanModal" style="display:none;">
+        <div class="modal-content" style="max-width:700px;width:95vw;">
+            <h3 class="modal-title">Detail Peminjaman</h3>
+            <div class="detail-peminjaman-content" style="margin-top:1.5rem;">
+                <!-- Data Peminjam Section -->
+                <div class="detail-section">
+                    <h4 class="detail-section-title">Data Peminjam</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Nama:</span>
+                        <span class="detail-value" id="detailPeminjamanNama">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">NIP:</span>
+                        <span class="detail-value" id="detailPeminjamanNip">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Divisi/Tim:</span>
+                        <span class="detail-value" id="detailPeminjamanDivisi">-</span>
+                    </div>
+                </div>
+
+                <!-- Data Laptop Section -->
+                <div class="detail-section">
+                    <h4 class="detail-section-title">Data Laptop</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Kode Laptop:</span>
+                        <span class="detail-value" id="detailPeminjamanLaptopId">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Merk:</span>
+                        <span class="detail-value" id="detailPeminjamanMerk">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Type:</span>
+                        <span class="detail-value" id="detailPeminjamanType">-</span>
+                    </div>
+                </div>
+
+                <!-- Data Peminjaman Section -->
+                <div class="detail-section">
+                    <h4 class="detail-section-title">Data Peminjaman</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Tgl Pinjam:</span>
+                        <span class="detail-value" id="detailPeminjamanTglPinjam">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Tgl Rencana Kembali:</span>
+                        <span class="detail-value" id="detailPeminjamanTglRencana">-</span>
+                    </div>
+                    <div class="detail-row" id="detailPeminjamanTglRealisasiRow" style="display:none;">
+                        <span class="detail-label">Tgl Realisasi Kembali:</span>
+                        <span class="detail-value" id="detailPeminjamanTglRealisasi">-</span>
+                    </div>
+                </div>
+
+                <!-- Keperluan Section -->
+                <div class="detail-section">
+                    <h4 class="detail-section-title">Keperluan Peminjaman</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Keperluan:</span>
+                        <span class="detail-value" id="detailPeminjamanKeperluan">-</span>
+                    </div>
+                    <div class="detail-row" id="detailPeminjamanDeskripsiRow" style="display:none;">
+                        <span class="detail-label">Deskripsi:</span>
+                        <span class="detail-value" id="detailPeminjamanDeskripsi" style="white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">-</span>
+                    </div>
+                </div>
+
+                <!-- Pengembalian Section -->
+                <div class="detail-section" id="detailPeminjamanPengembalianSection" style="display:none;">
+                    <h4 class="detail-section-title">Data Pengembalian</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Kondisi:</span>
+                        <span class="detail-value" id="detailPeminjamanKondisi">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Catatan:</span>
+                        <span class="detail-value" id="detailPeminjamanCatatan" style="white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top:1.5rem;">
+                <button class="btn btn-secondary" onclick="closeDetailPeminjamanModal()">Tutup</button>
             </div>
         </div>
     </div>
